@@ -84,14 +84,68 @@ const CHORD_SHAPES = {
     { string: 5, fret: -1, finger: "X" },
   ],
   // Add more chord shapes here...
-  // 'A-major': [
-  //     { string: 0, fret: 0, finger: "Open" },
-  //     { string: 1, fret: 2, finger: "1" },
-  //     { string: 2, fret: 2, finger: "2" },
-  //     { string: 3, fret: 2, finger: "3" },
-  //     { string: 4, fret: 0, finger: "Open" },
-  //     { string: 5, fret: -1, finger: "X" }
-  // ],
+  "A-major": [
+    { string: 0, fret: 0, finger: "Open" },
+    { string: 1, fret: 2, finger: "1" },
+    { string: 2, fret: 2, finger: "2" },
+    { string: 3, fret: 2, finger: "3" },
+    { string: 4, fret: 0, finger: "Open" },
+    { string: 5, fret: -1, finger: "X" },
+  ],
+
+  "E-major": [
+    { string: 0, fret: 0, finger: "Open" },
+    { string: 1, fret: 0, finger: "Open" },
+    { string: 2, fret: 1, finger: "1" },
+    { string: 3, fret: 2, finger: "2" },
+    { string: 4, fret: 2, finger: "3" },
+    { string: 5, fret: 0, finger: "Open" },
+  ],
+
+  "A-minor": [
+    { string: 0, fret: 0, finger: "Open" },
+    { string: 1, fret: 1, finger: "1" },
+    { string: 2, fret: 2, finger: "2" },
+    { string: 3, fret: 2, finger: "3" },
+    { string: 4, fret: 0, finger: "Open" },
+    { string: 5, fret: -1, finger: "X" },
+  ],
+
+  "E-minor": [
+    { string: 0, fret: 0, finger: "Open" },
+    { string: 1, fret: 0, finger: "Open" },
+    { string: 2, fret: 0, finger: "Open" },
+    { string: 3, fret: 2, finger: "2" },
+    { string: 4, fret: 2, finger: "3" },
+    { string: 5, fret: 0, finger: "Open" },
+  ],
+
+  "D-minor": [
+    { string: 0, fret: 1, finger: "1" },
+    { string: 1, fret: 3, finger: "3" },
+    { string: 2, fret: 2, finger: "2" },
+    { string: 3, fret: 0, finger: "Open" },
+    { string: 4, fret: -1, finger: "X" },
+    { string: 5, fret: -1, finger: "X" },
+  ],
+
+  "G-minor": [
+    { string: 0, fret: 3, finger: "3" },
+    { string: 1, fret: 3, finger: "4" },
+    { string: 2, fret: 3, finger: "2" },
+    { string: 3, fret: 0, finger: "Open" },
+    { string: 4, fret: -1, finger: "X" },
+    { string: 5, fret: -1, finger: "X" },
+  ],
+
+  "C-minor": [
+    { string: 0, fret: 3, finger: "3" },
+    { string: 1, fret: 3, finger: "4" },
+    { string: 2, fret: 3, finger: "2" },
+    { string: 3, fret: 3, finger: "1" },
+    { string: 4, fret: 0, finger: "Open" },
+    { string: 5, fret: -1, finger: "X" },
+  ],
 };
 
 // Initialize the fretboard
