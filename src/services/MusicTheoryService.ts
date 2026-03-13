@@ -2,7 +2,7 @@ import { Chord, Note, Scale } from 'tonal';
 import type { NoteName, ChordQuality, Chord as ChordType, Scale as ScaleType, ChordPosition, ChordShape } from '../types';
 import { OPEN_STRINGS } from '../types';
 
-const NOTE_COLORS: Record<NoteName, string> = {
+const NOTE_COLORS: Record<string, string> = {
   C: '#e74c3c',
   'C#': '#e67e22',
   Db: '#e67e22',
@@ -24,13 +24,13 @@ const NOTE_COLORS: Record<NoteName, string> = {
 
 const CHORD_QUALITY_MAP: Record<string, ChordQuality> = {
   '': 'major',
-  'm': 'minor',
   'maj': 'major',
+  'm': 'minor',
   'min': 'minor',
   'dim': 'dim',
   'aug': 'aug',
   'sus2': 'sus2',
-  sus4: 'sus4',
+  'sus4': 'sus4',
   '7': '7',
   'maj7': 'maj7',
   'm7': 'min7',
@@ -41,22 +41,43 @@ const CHORD_QUALITY_MAP: Record<string, ChordQuality> = {
   'm9': 'min9',
   '11': '11',
   '13': '13',
-  add9: 'add9',
+  'add9': 'add9',
   '6': '6',
-  m6: 'min6',
+  'm6': 'min6',
 };
+
+const SCALE_TYPE_MAP: Record<string, string> = {
+  'major': 'major',
+  'minor': 'minor',
+  'natural minor': 'minor',
+  'harmonic minor': 'harmonic minor',
+  'melodic minor': 'melodic minor',
+  'pentatonic major': 'major pentatonic',
+  'pentatonic minor': 'minor pentatonic',
+  'blues': 'blues',
+  'dorian': 'dorian',
+  'phrygian': 'phrygian',
+  'lydian': 'lydian',
+  'mixolydian': 'mixolydian',
+  'locrian': 'locrian',
+};
+
+function normalizeNoteName(note: string): NoteName {
+  const normalized = Note.enharmonic(note).replace(/\d/g, '') as NoteName;
+  return normalized || 'C';
+}
 
 export const MusicTheoryService = {
   getNoteIndex(note: NoteName): number {
     const midi = Note.midi(`${note}4`);
-    return midi ? midi - 60 : 0;
+    return midi ?? 0;
   },
 
   getNoteAtFret(stringIndex: number, fret: number): NoteName {
+    if (fret < 0) return 'C';
     const openNote = OPEN_STRINGS[stringIndex].openNote;
-    const note = Note.transpose(`${openNote}4`, `${fret}m`);
-    const name = Note.name(note);
-    return (name.replace(/\d/g, '') || 'C') as NoteName;
+    const note = Note.transpose(`${openNote}4`, `${fret}p`);
+    return normalizeNoteName(note);
   },
 
   getChord(root: NoteName, quality: ChordQuality): ChordType {
@@ -64,17 +85,10 @@ export const MusicTheoryService = {
     const tonalChord = Chord.get(chordName);
     
     const notes = tonalChord.notes.length > 0 
-      ? tonalChord.notes.map(n => Note.name(n).replace(/\d/g, '') as NoteName)
+      ? tonalChord.notes.map(n => normalizeNoteName(n))
       : [root];
     
-    const intervals = tonalChord.intervals.length > 0 
-      ? tonalChord.intervals.map(i => {
-          const intervalMap: Record<string, number> = {
-            '1P': 0, '2m': 1, '2M': 2, '3m': 3, '3M': 4, '4P': 5, '5P': 7, '6m': 8, '6M': 9, '7m': 10, '7M': 11,
-          };
-          return intervalMap[i] ?? 0;
-        })
-      : [0];
+    const intervals = this.parseIntervals(tonalChord.intervals);
 
     return {
       root,
@@ -85,22 +99,25 @@ export const MusicTheoryService = {
     };
   },
 
+  parseIntervals(intervals: string[]): number[] {
+    const intervalMap: Record<string, number> = {
+      '1P': 0, '2m': 1, '2M': 2, '3m': 3, '3M': 4, 
+      '4P': 5, '5P': 7, '6m': 8, '6M': 9, '7m': 10, '7M': 11,
+      '1': 0, '2': 2, '3': 4, '4': 5, '5': 7, '6': 9, '7': 11,
+    };
+    return intervals.map(i => intervalMap[i] ?? 0);
+  },
+
   getScale(root: NoteName, type: string): ScaleType {
-    const scaleName = `${root} ${type}`;
+    const tonalType = SCALE_TYPE_MAP[type] || type;
+    const scaleName = `${root} ${tonalType}`;
     const tonalScale = Scale.get(scaleName);
     
     const notes = tonalScale.notes.length > 0
-      ? tonalScale.notes.map(n => Note.name(n).replace(/\d/g, '') as NoteName)
+      ? tonalScale.notes.map(n => normalizeNoteName(n))
       : [root];
     
-    const intervals = tonalScale.intervals.length > 0
-      ? tonalScale.intervals.map(i => {
-          const intervalMap: Record<string, number> = {
-            '1P': 0, '2m': 1, '2M': 2, '3m': 3, '3M': 4, '4P': 5, '5P': 7, '6m': 8, '6M': 9, '7m': 10, '7M': 11,
-          };
-          return intervalMap[i] ?? 0;
-        })
-      : [0];
+    const intervals = this.parseIntervals(tonalScale.intervals);
 
     return {
       root,
@@ -128,7 +145,7 @@ export const MusicTheoryService = {
   },
 
   getRomanNumeral(degree: number, isMinor: boolean): string {
-    const numerals = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii'];
+    const numerals = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii\u00b0'];
     const minorNumerals = ['i', 'ii\u00b0', 'III', 'iv', 'v', 'VI', 'VII'];
     return isMinor ? minorNumerals[degree % 7] : numerals[degree % 7];
   },
@@ -136,12 +153,13 @@ export const MusicTheoryService = {
   detectChordFromNotes(notes: NoteName[]): ChordType | null {
     if (notes.length === 0) return null;
     
-    const root = notes[0];
-    const chord = Chord.get(notes.join(' '));
+    const detected = Chord.detect(notes);
+    if (!detected || detected.length === 0) return null;
     
-    if (chord.notes.length === 0) return null;
-    
-    const quality = CHORD_QUALITY_MAP[chord.aliases[0] || ''] || 'major';
+    const chordName = detected[0];
+    const tonalChord = Chord.get(chordName);
+    const root = normalizeNoteName(tonalChord.root || notes[0]);
+    const quality = CHORD_QUALITY_MAP[tonalChord.aliases[0] || ''] || 'major';
     
     return this.getChord(root, quality);
   },
