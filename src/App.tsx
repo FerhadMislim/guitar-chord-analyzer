@@ -92,14 +92,12 @@ function App() {
         {activeTab === 'scales' && (
           <>
             <section className="controls-section">
-              <div className="controls-row">
+              <div className="controls-row controls-row-scales">
                 <NoteSelector
                   label="Root Note"
                   value={scaleRoot}
                   onChange={setScaleRoot}
                 />
-              </div>
-              <div className="controls-row">
                 <ScaleTypeSelector
                   label="Scale Type"
                   value={scaleType}
@@ -142,7 +140,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>Guitar Chord Analyzer - Built with React, TypeScript & Vite</p>
+        {/* <p>Master your fretboard with precision. Craft your sound.</p> */}
       </footer>
     </div>
   );
