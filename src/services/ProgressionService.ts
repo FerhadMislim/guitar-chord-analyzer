@@ -1,21 +1,6 @@
 import type { Chord, Progression, NoteName, ChordQuality, ScaleType } from '../types';
 import { MusicTheoryService } from './MusicTheoryService';
 
-const DIATONIC_CHORD_QUALITIES: Record<string, ChordQuality[]> = {
-  'major': ['major', 'minor', 'minor', 'major', 'major', 'minor', 'dim'],
-  'minor': ['minor', 'dim', 'major', 'minor', 'minor', 'major', 'major'],
-  'harmonic minor': ['minor', 'dim', 'aug', 'minor', 'major', 'major', 'dim'],
-  'melodic minor': ['minor', 'minor', 'aug', 'major', 'major', 'dim', 'dim'],
-  'pentatonic major': ['major', 'minor', 'major', 'minor', 'major'],
-  'pentatonic minor': ['minor', 'minor', 'major', 'minor', 'major'],
-  'blues': ['major', 'major', 'minor', 'major', 'major', 'minor'],
-  'dorian': ['minor', 'minor', 'major', 'major', 'minor', 'dim', 'major'],
-  'phrygian': ['minor', 'major', 'minor', 'major', 'minor', 'major', 'major'],
-  'lydian': ['major', 'major', 'minor', 'dim', 'major', 'minor', 'minor'],
-  'mixolydian': ['major', 'minor', 'dim', 'major', 'minor', 'minor', 'major'],
-  'locrian': ['dim', 'major', 'minor', 'major', 'minor', 'major', 'major'],
-};
-
 const COMMON_PROGRESSIONS: Record<string, number[][]> = {
   'major': [
     [0, 3, 4],
@@ -84,10 +69,20 @@ const COMMON_PROGRESSIONS: Record<string, number[][]> = {
   ],
 };
 
+function getChordQualitiesForKey(scaleType: ScaleType): ChordQuality[] {
+  if (scaleType === 'minor' || scaleType === 'harmonic minor' || scaleType === 'melodic minor') {
+    return ['minor', 'dim', 'major', 'minor', 'minor', 'major', 'major'];
+  }
+  if (scaleType === 'major') {
+    return ['major', 'minor', 'minor', 'major', 'major', 'minor', 'dim'];
+  }
+  return ['major', 'minor', 'minor', 'major', 'major', 'minor', 'dim'];
+}
+
 export const ProgressionService = {
   getDiatonicChords(root: NoteName, scaleType: ScaleType): Chord[] {
-    const qualities = DIATONIC_CHORD_QUALITIES[scaleType] || DIATONIC_CHORD_QUALITIES['major'];
     const scale = MusicTheoryService.getScale(root, scaleType);
+    const qualities = getChordQualitiesForKey(scaleType);
     
     return qualities.map((quality, degree) => {
       const chordRoot = scale.notes[degree % scale.notes.length];
@@ -96,12 +91,13 @@ export const ProgressionService = {
   },
 
   getCommonProgressions(root: NoteName, scaleType: ScaleType): Progression[] {
-    const diatonicChords = this.getDiatonicChords(root, scaleType);
+    const isMinor = scaleType === 'minor' || scaleType === 'harmonic minor' || scaleType === 'melodic minor';
     const progressionIndices = COMMON_PROGRESSIONS[scaleType] || COMMON_PROGRESSIONS['major'];
     
     return progressionIndices.map((indices, idx) => {
+      const diatonicChords = this.getDiatonicChords(root, scaleType);
       const chords = indices.map(i => diatonicChords[i % diatonicChords.length]);
-      const numerals = indices.map(i => MusicTheoryService.getRomanNumeral(i, scaleType === 'minor'));
+      const numerals = indices.map(i => MusicTheoryService.getRomanNumeral(i, isMinor));
       
       return {
         name: `Progression ${idx + 1}`,
@@ -121,22 +117,22 @@ export const ProgressionService = {
   },
 
   getScaleDegrees(scaleType: ScaleType): string[] {
-    const degrees: Record<string, string[]> = {
-      'major': ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii'],
-      'minor': ['i', 'ii\u00b0', 'III', 'iv', 'v', 'VI', 'VII'],
-      'harmonic minor': ['i', 'ii\u00b0', 'III+', 'iv', 'V', 'VI', 'vii\u00b0'],
-      'melodic minor': ['i', 'ii', 'III+', 'IV', 'V', 'vi\u00b0', 'vii\u00b0'],
-      'pentatonic major': ['I', 'ii', 'III', 'V', 'vi'],
-      'pentatonic minor': ['i', 'III', 'IV', 'v', 'VII'],
-      'blues': ['I', 'IV', 'V', 'bV', 'VI', 'bVII'],
-      'dorian': ['i', 'ii', 'III', 'IV', 'v', 'vi\u00b0', 'VII'],
-      'phrygian': ['i', 'II', 'III', 'IV', 'v', 'VI', 'vii'],
-      'lydian': ['I', 'II', 'iii', '#iv', 'V', 'vi', 'vii'],
-      'mixolydian': ['I', 'ii', 'iii\u00b0', 'IV', 'v', 'vi', 'VII'],
-      'locrian': ['i\u00b0', 'II', 'iii', 'iv', 'V', 'VI', 'vii'],
-    };
+    const isMinor = scaleType === 'minor' || scaleType === 'harmonic minor' || scaleType === 'melodic minor';
     
-    return degrees[scaleType] || degrees['major'];
+    if (scaleType === 'harmonic minor') {
+      return ['i', 'ii\u00b0', 'III+', 'iv', 'V', 'VI', 'vii\u00b0'];
+    }
+    if (scaleType === 'melodic minor') {
+      return ['i', 'ii', 'III+', 'IV', 'V', 'vi\u00b0', 'vii\u00b0'];
+    }
+    if (scaleType === 'major') {
+      return ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii\u00b0'];
+    }
+    if (isMinor) {
+      return ['i', 'ii\u00b0', 'III', 'iv', 'v', 'VI', 'VII'];
+    }
+    
+    return ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii'];
   },
 };
 
