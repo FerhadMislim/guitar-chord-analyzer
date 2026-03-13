@@ -19,7 +19,7 @@ export function Fretboard({
   positions,
   highlightedNotes,
   showFretNumbers = true,
-  numFrets = 5,
+  numFrets = 15,
   onPositionClick,
 }: FretboardProps) {
   const defaultPositions = useMemo(() => {
@@ -30,13 +30,14 @@ export function Fretboard({
     
     for (let stringIndex = 0; stringIndex < 6; stringIndex++) {
       let found = false;
+      // Check from fret 0 (open) to numFrets
       for (let fret = 0; fret <= numFrets; fret++) {
         const note = MusicTheoryService.getNoteAtFret(stringIndex, fret);
         if (chordNotesSet.has(note)) {
           defaultPos.push({
             string: stringIndex,
             fret,
-            finger: fret <= 3 ? 1 : 2,
+            finger: fret === 0 ? 'open' : 1,
             note,
           });
           found = true;
@@ -52,24 +53,36 @@ export function Fretboard({
   }, [chord, positions, numFrets]);
 
   const renderString = (stringIndex: number) => {
-    const openNote = OPEN_STRINGS[stringIndex].openNote;
     const isMuted = defaultPositions[stringIndex]?.fret === -1;
     const activeFret = defaultPositions[stringIndex]?.fret;
-    const noteAtPosition = activeFret !== undefined && activeFret >= 0 
-      ? MusicTheoryService.getNoteAtFret(stringIndex, activeFret)
-      : null;
+    const openNote = OPEN_STRINGS[stringIndex].openNote;
+    const isOpenActive = activeFret === 0;
 
     return (
       <div key={stringIndex} className="fretboard-string">
-        <div className="string-indicator">
-          {isMuted ? '✕' : openNote}
+        {/* Open string area */}
+        <div className={`open-fret ${isOpenActive ? 'active' : ''} ${isMuted ? 'muted' : ''}`}>
+          {isMuted ? (
+            <span className="mute-x">✕</span>
+          ) : (
+            <div 
+              className={`open-note-indicator ${isOpenActive ? 'playing' : ''}`}
+              style={isOpenActive ? { backgroundColor: MusicTheoryService.getNoteColor(openNote) } : {}}
+            >
+              {isOpenActive ? openNote : openNote}
+            </div>
+          )}
         </div>
+
+        {/* Fretted area */}
+        <div className="string-line" />
+        
         {Array.from({ length: numFrets }, (_, fretIndex) => {
           const fretNumber = fretIndex + 1;
           const note = MusicTheoryService.getNoteAtFret(stringIndex, fretNumber);
-          const isHighlighted = highlightedNotes?.includes(note) || chord.notes.includes(note);
+          const isHighlighted = highlightedNotes?.includes(note);
           const isActive = activeFret === fretNumber;
-          const color = isHighlighted ? MusicTheoryService.getNoteColor(note) : undefined;
+          const color = MusicTheoryService.getNoteColor(note);
           
           return (
             <div
@@ -84,16 +97,24 @@ export function Fretboard({
                 }
               }}
             >
-              {isActive && noteAtPosition && (
+              {isActive && (
                 <div 
                   className="note-marker" 
-                  style={{ backgroundColor: color }}
+                  data-note={note}
+                  style={{ backgroundColor: color, color: 'white', outlineColor: color }}
                 >
-                  {noteAtPosition}
+                  {note}
                 </div>
               )}
-              {fretNumber === 12 && showFretNumbers && (
-                <div className="double-fret-marker">••</div>
+              {/* Scale highlight (dimmer) */}
+              {isHighlighted && !isActive && (
+                <div 
+                  className="note-marker scale-highlight" 
+                  data-note={note}
+                  style={{ borderColor: color, color: color }}
+                >
+                  {note}
+                </div>
               )}
             </div>
           );
@@ -103,18 +124,42 @@ export function Fretboard({
   };
 
   return (
-    <div className="fretboard">
-      <div className="fretboard-header">
-        {Array.from({ length: numFrets }, (_, i) => (
-          <div key={i} className="fret-number">
-            {showFretNumbers && FRET_MARKERS.includes(i + 1) ? i + 1 : ''}
+    <div className="fretboard-container-wrapper">
+      <div className="fretboard">
+        <div className="fretboard-header">
+          <div className="open-fret-label" />
+          {Array.from({ length: numFrets }, (_, i) => (
+            <div key={i} className="fret-number">
+              {showFretNumbers && FRET_MARKERS.includes(i + 1) ? i + 1 : ''}
+            </div>
+          ))}
+        </div>
+        
+        <div className="fretboard-body">
+          <div className="fretboard-nut" />
+          {[0, 1, 2, 3, 4, 5].map(renderString)}
+          
+          {/* Fret markers (dots) */}
+          <div className="fret-dots">
+            {FRET_MARKERS.map(fretNum => {
+              if (fretNum > numFrets) return null;
+              if (fretNum === 12) {
+                return (
+                  <div key={fretNum} className="double-dot" style={{ left: `${40 + (fretNum - 0.5) * 60}px` }}>
+                    <div className="dot" />
+                    <div className="dot" />
+                  </div>
+                );
+              }
+              return (
+                <div key={fretNum} className="single-dot" style={{ left: `${40 + (fretNum - 0.5) * 60}px` }}>
+                  <div className="dot" />
+                </div>
+              );
+            })}
           </div>
-        ))}
+        </div>
       </div>
-      <div className="fretboard-body">
-        {[0, 1, 2, 3, 4, 5].map(renderString)}
-      </div>
-      <div className="fretboard-nut" />
     </div>
   );
 }

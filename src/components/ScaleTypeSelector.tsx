@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { ScaleType } from '../types';
 
 interface ScaleTypeSelectorProps {
@@ -6,44 +7,92 @@ interface ScaleTypeSelectorProps {
   label?: string;
 }
 
-const SCALE_TYPES: { value: ScaleType; label: string; category: string }[] = [
-  { value: 'major', label: 'Major', category: 'Diatonic' },
-  { value: 'minor', label: 'Natural Minor', category: 'Diatonic' },
-  { value: 'harmonic minor', label: 'Harmonic Minor', category: 'Minor' },
-  { value: 'melodic minor', label: 'Melodic Minor', category: 'Minor' },
-  { value: 'pentatonic major', label: 'Pentatonic Major', category: 'Pentatonic' },
-  { value: 'pentatonic minor', label: 'Pentatonic Minor', category: 'Pentatonic' },
-  { value: 'blues', label: 'Blues', category: 'Pentatonic' },
-  { value: 'dorian', label: 'Dorian', category: 'Mode' },
-  { value: 'phrygian', label: 'Phrygian', category: 'Mode' },
-  { value: 'lydian', label: 'Lydian', category: 'Mode' },
-  { value: 'mixolydian', label: 'Mixolydian', category: 'Mode' },
-  { value: 'locrian', label: 'Locrian', category: 'Mode' },
+const SCALE_CATEGORIES: {
+  id: string;
+  label: string;
+  scales: { value: ScaleType; label: string }[];
+}[] = [
+  {
+    id: 'diatonic',
+    label: 'Diatonic',
+    scales: [
+      { value: 'major', label: 'Major' },
+      { value: 'minor', label: 'Natural Minor' },
+    ],
+  },
+  {
+    id: 'minor',
+    label: 'Minor',
+    scales: [
+      { value: 'harmonic minor', label: 'Harmonic' },
+      { value: 'melodic minor', label: 'Melodic' },
+    ],
+  },
+  {
+    id: 'pentatonic',
+    label: 'Pentatonic',
+    scales: [
+      { value: 'pentatonic major', label: 'Major' },
+      { value: 'pentatonic minor', label: 'Minor' },
+      { value: 'blues', label: 'Blues' },
+    ],
+  },
+  {
+    id: 'modes',
+    label: 'Modes',
+    scales: [
+      { value: 'dorian', label: 'Dorian' },
+      { value: 'phrygian', label: 'Phrygian' },
+      { value: 'lydian', label: 'Lydian' },
+      { value: 'mixolydian', label: 'Mixolydian' },
+      { value: 'locrian', label: 'Locrian' },
+    ],
+  },
 ];
 
 export function ScaleTypeSelector({ value, onChange, label }: ScaleTypeSelectorProps) {
-  const categories = [...new Set(SCALE_TYPES.map(s => s.category))];
+  const initialCategory = SCALE_CATEGORIES.find(cat => 
+    cat.scales.some(scale => scale.value === value)
+  )?.id || 'diatonic';
+  
+  const [activeCategory, setActiveCategory] = useState(initialCategory);
+
+  const currentCategory = SCALE_CATEGORIES.find(cat => cat.id === activeCategory) || SCALE_CATEGORIES[0];
+
+  const handleCategoryClick = (categoryId: string) => {
+    setActiveCategory(categoryId);
+    const category = SCALE_CATEGORIES.find(cat => cat.id === categoryId);
+    if (category && category.scales.length > 0) {
+      onChange(category.scales[0].value);
+    }
+  };
 
   return (
     <div className="scale-type-selector">
       {label && <label>{label}</label>}
-      <div className="scale-categories">
-        {categories.map(category => (
-          <div key={category} className="scale-category">
-            <span className="category-label">{category}</span>
-            <div className="scale-options">
-              {SCALE_TYPES.filter(s => s.category === category).map(scale => (
-                <button
-                  key={scale.value}
-                  className={`scale-button ${value === scale.value ? 'active' : ''}`}
-                  onClick={() => onChange(scale.value)}
-                >
-                  {scale.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+      <div className="scale-selector-wrapper">
+        <div className="scale-category-tabs">
+          {SCALE_CATEGORIES.map(category => (
+            <button
+              key={category.id}
+              className={`scale-category-tab ${activeCategory === category.id ? 'active' : ''}`}
+              onClick={() => handleCategoryClick(category.id)}
+            >
+              {category.label}
+            </button>
+          ))}
+        </div>
+        <div className="scale-options">
+          {currentCategory.scales.map(scale => (
+            <button
+              key={scale.value}
+              className={`scale-button ${value === scale.value ? 'active' : ''}`}
+              onClick={() => onChange(scale.value)}
+            >
+              {scale.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
