@@ -432,3 +432,74 @@ document.addEventListener("DOMContentLoaded", () => {
   showChord("C", "major");
   suggestProgression("C", "major");
 });
+
+
+// // Function to get scale notes based on root and type
+// function getScaleNotes(rootNote, scaleType) {
+//   const rootIndex = NOTES.indexOf(rootNote);
+//   const intervals = SCALES[scaleType];
+
+//   return intervals.map((interval) => {
+//     const noteIndex = (rootIndex + interval) % 12;
+//     return NOTES[noteIndex];
+//   });
+// }
+
+// // Function to show scale on the fretboard
+// function showScale(rootNote, scaleType) {
+//   clearFretboard();
+
+//   const scaleNotes = getScaleNotes(rootNote, scaleType);
+//   let scalePositions = [];
+
+//   for (let stringIndex = 0; stringIndex < 6; stringIndex++) {
+//     for (let fret = 0; fret < 12; fret++) {
+//       const noteAtPosition = getNoteAtPosition(stringIndex, fret);
+//       if (scaleNotes.includes(noteAtPosition)) {
+//         scalePositions.push({
+//           string: stringIndex,
+//           fret: fret,
+//           note: noteAtPosition,
+//         });
+//       }
+//     }
+//   }
+
+//   // Place notes on the fretboard
+//   scalePositions.forEach((position) => {
+//     const string = document.querySelector(
+//       `.string[data-string="${position.string}"]`
+//     );
+//     const fret = string.querySelector(`.fret[data-fret="${position.fret}"]`);
+
+//     const noteAtPos = getNoteAtPosition(position.string, position.fret);
+//     const note = document.createElement("div");
+//     note.className = "note";
+//     note.textContent = noteAtPos;
+
+//     // Set color based on the note
+//     note.style.backgroundColor = NOTE_COLORS[noteAtPos];
+
+//     // Darker text for bright background colors
+//     if (["D", "D#", "F", "F#", "G", "G#"].includes(noteAtPos)) {
+//       note.style.color = "#2c3e50";
+//     } else {
+//       note.style.color = "#ffffff";
+//     }
+
+//     fret.appendChild(note);
+//   });
+
+//   // Update scale title
+//   document.getElementById(
+//     "scale-title"
+//   ).textContent = `${rootNote} ${formatChordType(scaleType)} Scale`;
+// }
+  
+
+// // Add event listener for the new button
+// document.getElementById("show-scale").addEventListener("click", () => {
+//   const rootNote = document.getElementById("root-note").value;
+//   const scaleType = document.getElementById("scale-type").value
+//   showScale(rootNote, scaleType);
+// });
